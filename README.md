@@ -1,11 +1,13 @@
-# ZenLingo Personal Learning Hub
+# SelfHan Frontend
 
-React and Vite learning dashboard with client-side routes and durable browser
-progress.
+React and Vite learner application for SelfHan. It consumes the current NestJS
+foundation API and presents the Vietnamese-first Level → Unit → Lesson learning
+path with a responsive green sidebar layout.
 
 ## Requirements
 
-Use Node 24 (`>=24.0.0 <25`) and npm.
+- Node 24 (`>=24.0.0 <25`)
+- The backend stack running on `http://localhost:3000`
 
 ## Local workflow
 
@@ -16,35 +18,31 @@ npx playwright install chromium
 npm run verify
 ```
 
-Run the app locally with `npm run dev`. The CI workflow uses the same `npm ci`
-then `npm run verify` sequence on Node 24. Verification includes formatting,
-lint, strict type checking, per-file coverage thresholds, a production build,
-and a real Chromium E2E/accessibility suite against the production preview.
+Start the backend first, then run `npm run dev` in this directory. By default,
+the frontend calls `http://localhost:3000/api/v1`. Set `VITE_API_BASE_URL` when
+the API is served from another origin.
 
-## Browser persistence
+## Implemented foundation routes
 
-Learning progress is stored locally in the current browser. ZenLingo validates
-the versioned payload before use, restores goal completion onto the canonical
-goal copy, and discards corrupt or obsolete data. Flashcard face orientation is
-session-only and is never persisted. There is no backend, account, or cross-
-device synchronization.
+- `/` and `/levels`: published Level catalogue
+- `/levels/:slug`: Units in a Level
+- `/units/:slug`: Lessons in a Unit
+- `/lessons/:slug`: vocabulary, Pinyin, Vietnamese meanings, examples, grammar,
+  optional audio, and browser-only handwriting canvas
+- `/login` and `/register`: credentialed auth flows using the access token in
+  memory and the backend's HttpOnly refresh cookie
+
+The browser never stores refresh tokens or learner progress. Quiz attempts,
+flashcard outcomes, dashboard/streak, and admin CRUD are deliberately absent
+until the corresponding backend contracts exist.
+
+## Quality gates
+
+`npm run verify` checks formatting, lint, TypeScript, per-file coverage,
+production build, and Playwright accessibility/E2E tests for the Level → Unit
+→ Lesson flow at desktop and mobile widths.
 
 ## SPA deployment
 
-ZenLingo uses `BrowserRouter`, so the host must serve `index.html` for app URLs
-that do not match a static file. This repository includes both supported host
-configurations:
-
-- Netlify uses `netlify.toml` with a `/*` status-200 rewrite.
-- Vercel uses `vercel.json` with a catch-all rewrite to `/index.html`.
-
-The supported direct paths are `/`, `/writing`, `/flashcards`, `/recall`,
-`/notes`, and `/stats`. `npm run test:e2e` builds the production bundle, starts
-its preview server, executes JavaScript at every direct path in Chromium,
-checks persisted Writing completion after reload, fails on browser console/page
-errors, and runs axe (including color contrast) on every route plus the open
-Notes modal and mobile drawer.
-
-`npm run test:preview` remains available as a fast transport-only check that
-all six paths return HTML. It does not execute application JavaScript and is
-not described as a browser smoke test.
+The app uses `BrowserRouter`; Netlify and Vercel rewrite direct route requests
+to `index.html` through the supplied configuration files.

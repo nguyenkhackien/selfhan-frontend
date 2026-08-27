@@ -19,7 +19,7 @@ export class AppErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("ZenLingo render failure", error, info);
+    console.error("SelfHan render failure", error, info);
   }
 
   private retry = () => {
@@ -31,7 +31,7 @@ export class AppErrorBoundary extends Component<
       return (
         <main className="system-message" role="alert">
           <p className="eyebrow">TẠM DỪNG MỘT NHỊP</p>
-          <h1>ZenLingo cần thử lại</h1>
+          <h1>SelfHan cần thử lại</h1>
           <p>
             Có điều gì đó chưa ổn khi hiển thị không gian học. Bạn có thể thử
             tải lại nội dung ngay bây giờ.

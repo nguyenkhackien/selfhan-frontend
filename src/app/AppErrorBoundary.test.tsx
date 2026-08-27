@@ -27,7 +27,7 @@ describe("AppErrorBoundary", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "ZenLingo cần thử lại" }),
+      screen.getByRole("heading", { name: "SelfHan cần thử lại" }),
     ).not.toBeNull();
     shouldThrow = false;
 
