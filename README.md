@@ -36,6 +36,19 @@ The browser never stores refresh tokens or learner progress. Quiz attempts,
 flashcard outcomes, dashboard/streak, and admin CRUD are deliberately absent
 until the corresponding backend contracts exist.
 
+## HSK data attribution
+
+The current HSK data foundation is stored and imported locally by the backend;
+the browser does not call a source repository, dictionary, or translation API
+at runtime. The shared application footer attributes vocabulary data to
+[CVDICT](https://github.com/ph0ngp/CVDICT) and
+[CC-CEDICT](https://cc-cedict.org/wiki/) under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+HSK browsing, export, and the three-mode character-writing flow are not yet
+learner routes. Any future vocabulary export must retain the same attribution
+in its metadata.
+
 ## Quality gates
 
 `npm run verify` checks formatting, lint, TypeScript, per-file coverage,

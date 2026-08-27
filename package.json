@@ -15,6 +15,7 @@
     "test:e2e": "npm run build && npm run test:e2e:run",
     "test:e2e:run": "playwright test",
     "test:preview": "node scripts/smoke-preview.mjs",
+    "hsk:strokes": "node scripts/build-hsk-stroke-assets.mjs",
     "format": "prettier --write . --ignore-unknown",
     "format:check": "prettier --check . --ignore-unknown",
     "lint": "eslint . --max-warnings=0",
@@ -22,6 +23,7 @@
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run test:e2e:run"
   },
   "dependencies": {
+    "hanzi-writer": "^3.7.3",
     "lucide-react": "1.31.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

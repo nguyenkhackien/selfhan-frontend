@@ -14,6 +14,7 @@ function AppHeader({ auth, onMenu }: { auth: AuthState; onMenu(): void }) {
       </Link>
       <nav className="desktop-nav" aria-label="Điều hướng chính">
         <NavLink to="/levels">Lộ trình học</NavLink>
+        <NavLink to="/hsk">Từ vựng HSK</NavLink>
         <a href="#how-it-works">Cách học</a>
       </nav>
       <div className="header-actions">
@@ -84,6 +85,9 @@ function MobileMenu({
         <NavLink to="/levels" onClick={close}>
           Lộ trình học
         </NavLink>
+        <NavLink to="/hsk" onClick={close}>
+          Từ vựng HSK
+        </NavLink>
         <a href="#how-it-works" onClick={close}>
           Cách học
         </a>
@@ -125,12 +129,23 @@ export function AppLayout({ auth }: { auth: AuthState }) {
         close={() => setMenuOpen(false)}
         auth={auth}
       />
-      <main id="main-content">
-        <Outlet />
-      </main>
-      <footer className="site-footer">
-        SelfHan · Học tiếng Trung theo từng bước nhỏ
-      </footer>
+      <div className="app-content">
+        <main id="main-content">
+          <Outlet />
+        </main>
+        <footer className="site-footer">
+          <p>SelfHan · Học tiếng Trung theo từng bước nhỏ</p>
+          <p className="data-attribution">
+            Data từ vựng được kế thừa từ{" "}
+            <a href="https://github.com/ph0ngp/CVDICT">CVDICT</a> &amp;{" "}
+            <a href="https://cc-cedict.org/wiki/">CC-CEDICT</a> (
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/">
+              CC BY-SA 4.0
+            </a>
+            ).
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }

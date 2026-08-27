@@ -9,6 +9,7 @@ import {
   UnitPage,
 } from "@/features/curriculum";
 import { AppLayout } from "@/layouts/AppLayout";
+import { HskPage, HskVocabularyPage } from "@/features/hsk";
 
 export function AppRouter({ auth }: { auth: AuthState }) {
   return (
@@ -19,6 +20,8 @@ export function AppRouter({ auth }: { auth: AuthState }) {
         <Route path="/levels/:slug" element={<LevelPage />} />
         <Route path="/units/:slug" element={<UnitPage />} />
         <Route path="/lessons/:slug" element={<LessonPage />} />
+        <Route path="/hsk" element={<HskPage />} />
+        <Route path="/hsk/vocabulary/:id" element={<HskVocabularyPage />} />
         <Route path="/login" element={<AuthPage auth={auth} mode="login" />} />
         <Route
           path="/register"

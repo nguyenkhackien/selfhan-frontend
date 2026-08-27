@@ -56,6 +56,14 @@ describe("SelfHan app", () => {
     expect(
       screen.getByRole("link", { name: /Tiếng Trung nhập môn/i }),
     ).not.toBeNull();
+    expect(screen.getByRole("link", { name: "CVDICT" })).toHaveProperty(
+      "href",
+      "https://github.com/ph0ngp/CVDICT",
+    );
+    expect(screen.getByRole("link", { name: "CC BY-SA 4.0" })).toHaveProperty(
+      "href",
+      "https://creativecommons.org/licenses/by-sa/4.0/",
+    );
   });
 
   it("shows a retryable API error", async () => {

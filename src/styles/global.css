@@ -886,6 +886,13 @@ body {
 .app {
   display: flex;
 }
+.app-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+}
 .site-header {
   align-items: stretch;
   background: #fbfaf6;
@@ -952,7 +959,146 @@ main {
   min-width: 0;
 }
 .site-footer {
-  display: none;
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 32px;
+}
+.site-footer p {
+  margin: 0;
+}
+.site-footer .data-attribution {
+  margin: 6px auto 0;
+  max-width: 62ch;
+}
+.site-footer a {
+  color: #42664f;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.hsk-band-tabs,
+.hsk-character-tabs,
+.hsk-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+.hsk-band-tabs button,
+.hsk-character-tabs button,
+.hsk-mode-tabs button {
+  background: #edf4ed;
+  border: 1px solid #c9d6ca;
+  border-radius: 10px;
+  color: #42664f;
+  min-height: 42px;
+  padding: 8px 12px;
+}
+.hsk-band-tabs button.is-active,
+.hsk-character-tabs button.is-active,
+.hsk-mode-tabs button.is-active {
+  background: #54785f;
+  border-color: #54785f;
+  color: #fff;
+}
+.hsk-search {
+  margin: 24px 0;
+}
+.hsk-search label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.hsk-search div {
+  display: flex;
+  gap: 10px;
+}
+.hsk-search input {
+  border: 1px solid #b7cbb9;
+  border-radius: 10px;
+  flex: 1;
+  font: inherit;
+  min-height: 46px;
+  padding: 10px 12px;
+}
+.hsk-vocabulary-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.hsk-word-card {
+  background: #fffdfa;
+  border: 1px solid #d9e2da;
+  border-radius: 14px;
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+}
+.hsk-word-card:hover {
+  border-color: #7d9d85;
+}
+.hsk-word-card .hanzi {
+  font-size: 38px;
+}
+.hsk-word-card small,
+.hsk-review-note {
+  color: #8a4b27;
+}
+.hsk-word-detail {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(120px, 0.4fr) 1fr;
+}
+.hsk-word-detail .hanzi {
+  font-size: 96px;
+}
+.hsk-word-detail ul {
+  line-height: 1.65;
+  padding-left: 20px;
+}
+.hsk-writing {
+  background: #f4f8f3;
+  border: 1px solid #d9e2da;
+  border-radius: 16px;
+  margin-top: 32px;
+  padding: 20px;
+}
+.hsk-practice-sheet {
+  align-items: center;
+  background-color: #fffdfa;
+  background-image:
+    linear-gradient(#dce7dd 1px, transparent 1px),
+    linear-gradient(90deg, #dce7dd 1px, transparent 1px);
+  background-size: 50% 50%;
+  border: 1px solid #c9d6ca;
+  display: grid;
+  height: min(78vw, 300px);
+  justify-content: center;
+  margin: 16px 0;
+  max-width: 300px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+.hsk-stroke-guide,
+.hsk-drawing-canvas {
+  grid-area: 1 / 1;
+  height: 300px;
+  width: 300px;
+}
+.hsk-drawing-canvas {
+  touch-action: none;
+}
+@media (max-width: 760px) {
+  .hsk-word-detail {
+    grid-template-columns: 1fr;
+  }
+  .hsk-search div {
+    flex-direction: column;
+  }
 }
 .button--primary {
   background: #54785f;
@@ -1036,6 +1182,9 @@ h2,
 @media (max-width: 760px) {
   .app {
     display: block;
+  }
+  .app-content {
+    min-height: calc(100vh - 66px);
   }
   .site-header {
     align-items: center;
