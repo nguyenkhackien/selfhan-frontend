@@ -9,10 +9,12 @@ import {
   PageFrame,
 } from "@/shared/components";
 import { useRemoteResource } from "@/shared/hooks/useRemoteResource";
+import type { AuthState } from "@/features/auth";
+import { UnitQuizPanel } from "@/features/learning/components/UnitQuizPanel";
 import { curriculumApi } from "../api/curriculumApi";
 import type { UnitDetail } from "../types/curriculum";
 
-export function UnitPage() {
+export function UnitPage({ auth }: { auth?: AuthState }) {
   const { slug = "" } = useParams();
   const load = useCallback(() => curriculumApi.getUnit(slug), [slug]);
   const resource = useRemoteResource<UnitDetail>(load, `unit:${slug}`);
@@ -62,6 +64,7 @@ export function UnitPage() {
           <EmptyState>Unit này chưa có Lesson được xuất bản.</EmptyState>
         )}
       </section>
+      <UnitQuizPanel signedIn={Boolean(auth?.user)} unitId={unit.id} />
     </PageFrame>
   );
 }

@@ -8,12 +8,15 @@ import {
   PageFrame,
 } from "@/shared/components";
 import { useRemoteResource } from "@/shared/hooks/useRemoteResource";
+import type { AuthState } from "@/features/auth";
+import { LessonQuizPanel } from "@/features/learning/components/LessonQuizPanel";
+import { LessonProgressPanel } from "@/features/learning/components/LessonProgressPanel";
 import { curriculumApi } from "../api/curriculumApi";
 import { AudioControl } from "../components/AudioControl";
 import { WritingCanvas } from "../components/WritingCanvas";
 import type { LessonDetail } from "../types/curriculum";
 
-export function LessonPage() {
+export function LessonPage({ auth }: { auth?: AuthState }) {
   const { slug = "" } = useParams();
   const load = useCallback(() => curriculumApi.getLesson(slug), [slug]);
   const resource = useRemoteResource<LessonDetail>(load, `lesson:${slug}`);
@@ -112,6 +115,8 @@ export function LessonPage() {
       {lesson.writingCharacter && (
         <WritingCanvas character={lesson.writingCharacter} />
       )}
+      {auth?.user && <LessonProgressPanel lessonId={lesson.id} />}
+      <LessonQuizPanel lessonId={lesson.id} signedIn={Boolean(auth?.user)} />
     </PageFrame>
   );
 }

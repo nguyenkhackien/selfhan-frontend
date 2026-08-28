@@ -14,6 +14,10 @@ function AppHeader({ auth, onMenu }: { auth: AuthState; onMenu(): void }) {
       </Link>
       <nav className="desktop-nav" aria-label="Điều hướng chính">
         <NavLink to="/levels">Lộ trình học</NavLink>
+        {auth.user && <NavLink to="/dashboard">Không gian học</NavLink>}
+        {auth.user?.role === "admin" && (
+          <NavLink to="/admin/content">Quản trị</NavLink>
+        )}
         <NavLink to="/hsk">Từ vựng HSK</NavLink>
         <a href="#how-it-works">Cách học</a>
       </nav>
@@ -85,6 +89,16 @@ function MobileMenu({
         <NavLink to="/levels" onClick={close}>
           Lộ trình học
         </NavLink>
+        {auth.user && (
+          <NavLink to="/dashboard" onClick={close}>
+            Không gian học
+          </NavLink>
+        )}
+        {auth.user?.role === "admin" && (
+          <NavLink to="/admin/content" onClick={close}>
+            Quản trị
+          </NavLink>
+        )}
         <NavLink to="/hsk" onClick={close}>
           Từ vựng HSK
         </NavLink>

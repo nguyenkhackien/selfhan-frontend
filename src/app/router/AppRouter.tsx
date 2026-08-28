@@ -10,6 +10,8 @@ import {
 } from "@/features/curriculum";
 import { AppLayout } from "@/layouts/AppLayout";
 import { HskPage, HskVocabularyPage } from "@/features/hsk";
+import { DashboardPage, QuizPage, ReviewPage } from "@/features/learning";
+import { AdminContentPage } from "@/features/admin";
 
 export function AppRouter({ auth }: { auth: AuthState }) {
   return (
@@ -18,10 +20,17 @@ export function AppRouter({ auth }: { auth: AuthState }) {
         <Route path="/" element={<HomePage />} />
         <Route path="/levels" element={<LevelsPage />} />
         <Route path="/levels/:slug" element={<LevelPage />} />
-        <Route path="/units/:slug" element={<UnitPage />} />
-        <Route path="/lessons/:slug" element={<LessonPage />} />
+        <Route path="/units/:slug" element={<UnitPage auth={auth} />} />
+        <Route path="/lessons/:slug" element={<LessonPage auth={auth} />} />
         <Route path="/hsk" element={<HskPage />} />
         <Route path="/hsk/vocabulary/:id" element={<HskVocabularyPage />} />
+        <Route path="/dashboard" element={<DashboardPage auth={auth} />} />
+        <Route path="/reviews" element={<ReviewPage auth={auth} />} />
+        <Route path="/quizzes/:id" element={<QuizPage auth={auth} />} />
+        <Route
+          path="/admin/content"
+          element={<AdminContentPage auth={auth} />}
+        />
         <Route path="/login" element={<AuthPage auth={auth} mode="login" />} />
         <Route
           path="/register"

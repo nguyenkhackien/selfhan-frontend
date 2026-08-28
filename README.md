@@ -35,10 +35,16 @@ the API is served from another origin.
   local writing modes: guidance, background character, and white paper
 - `/login` and `/register`: credentialed auth flows using the access token in
   memory and the backend's HttpOnly refresh cookie
+- `/dashboard`: learner dashboard for lesson completion, learned words, streak,
+  review queue and quiz statistics
+- `/reviews`: keyboard-accessible SRS flashcards with server-owned scheduling
+- `/quizzes/:id`: authenticated quiz selections, server scoring, retry, and
+  result feedback; lesson and Unit quiz links appear in their respective pages
+- `/admin/content`: role-protected CRUD workspace for curriculum and quiz data
 
-The browser never stores refresh tokens or learner progress. Quiz attempts,
-flashcard outcomes, dashboard/streak, and admin CRUD are deliberately absent
-until the corresponding backend contracts exist.
+The browser never stores refresh tokens or durable learner progress. It sends
+only selected answer IDs and review ratings; the backend owns score, completion,
+SRS schedule, tags, and authorization.
 
 ## HSK data attribution
 
