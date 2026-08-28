@@ -29,6 +29,10 @@ the API is served from another origin.
 - `/units/:slug`: Lessons in a Unit
 - `/lessons/:slug`: vocabulary, Pinyin, Vietnamese meanings, examples, grammar,
   optional audio, and browser-only handwriting canvas
+- `/hsk`: browse and search locally imported HSK 1–6 and the combined HSK 7–9
+  band through cursor pages
+- `/hsk/vocabulary/:id`: word detail with ordered Vietnamese senses and three
+  local writing modes: guidance, background character, and white paper
 - `/login` and `/register`: credentialed auth flows using the access token in
   memory and the backend's HttpOnly refresh cookie
 
@@ -45,9 +49,10 @@ at runtime. The shared application footer attributes vocabulary data to
 [CC-CEDICT](https://cc-cedict.org/wiki/) under
 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-HSK browsing, export, and the three-mode character-writing flow are not yet
-learner routes. Any future vocabulary export must retain the same attribution
-in its metadata.
+HSK browsing and the three-mode character-writing flow load only the local
+backend and `/public/hsk-strokes` assets. The stroke asset directory includes
+its pinned source lock and ARPHIC license notice. Any future vocabulary export
+must retain the same vocabulary attribution in its metadata.
 
 ## Quality gates
 

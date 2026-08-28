@@ -5,3 +5,4 @@ node_modules/
 .history/
 playwright-report/
 test-results/
+public/hsk-strokes/

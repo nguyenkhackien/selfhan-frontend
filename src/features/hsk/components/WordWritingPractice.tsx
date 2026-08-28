@@ -3,6 +3,12 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 
 type WritingMode = "guidance" | "background" | "white-paper";
 
+interface StrokeStatus {
+  readonly character: string;
+  readonly mode: WritingMode;
+  readonly message: string;
+}
+
 function loadLocalCharacter(character: string) {
   return fetch("/hsk-strokes/" + encodeURIComponent(character) + ".json").then(
     async (response) => {
@@ -16,19 +22,30 @@ export function WordWritingPractice({ word }: { word: string }) {
   const characters = Array.from(word);
   const [index, setIndex] = useState(0);
   const [mode, setMode] = useState<WritingMode>("guidance");
-  const [strokeStatus, setStrokeStatus] = useState("Đang tải dữ liệu nét.");
+  const [strokeStatus, setStrokeStatus] = useState<StrokeStatus | null>(null);
   const targetRef = useRef<HTMLDivElement | null>(null);
   const writerRef = useRef<HanziWriter | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isDrawing = useRef(false);
   const character = characters[index] ?? "";
+  const strokeStatusMessage =
+    mode === "white-paper"
+      ? "Giấy trắng sẵn sàng để tập viết tự do."
+      : strokeStatus?.character === character && strokeStatus.mode === mode
+        ? strokeStatus.message
+        : "Đang tải dữ liệu nét.";
 
   useEffect(() => {
     const target = targetRef.current;
-    if (!target || !character || mode === "white-paper") return;
+    if (!target || !character) return;
     target.replaceChildren();
-    setStrokeStatus("Đang tải dữ liệu nét.");
-    const writer = HanziWriter.create(target, character, {
+    if (mode === "white-paper") {
+      writerRef.current = null;
+      return;
+    }
+    let active = true;
+    let writer: HanziWriter | null = null;
+    writer = HanziWriter.create(target, character, {
       width: 300,
       height: 300,
       padding: 18,
@@ -38,15 +55,31 @@ export function WordWritingPractice({ word }: { word: string }) {
       outlineColor: "#b7cbb9",
       charDataLoader: loadLocalCharacter,
       onLoadCharDataSuccess: () => {
-        setStrokeStatus("Dữ liệu nét đã sẵn sàng.");
-        if (mode === "guidance") void writer.animateCharacter();
+        if (!active) return;
+        setStrokeStatus({
+          character,
+          mode,
+          message: "Dữ liệu nét đã sẵn sàng.",
+        });
+        if (mode === "guidance") {
+          queueMicrotask(() => {
+            if (active) void writer?.animateCharacter();
+          });
+        }
       },
       onLoadCharDataError: () => {
-        setStrokeStatus("Chưa có dữ liệu nét cục bộ cho chữ này.");
+        if (active) {
+          setStrokeStatus({
+            character,
+            mode,
+            message: "Chưa có dữ liệu nét cục bộ cho chữ này.",
+          });
+        }
       },
     });
     writerRef.current = writer;
     return () => {
+      active = false;
       writerRef.current = null;
       target.replaceChildren();
     };
@@ -140,6 +173,11 @@ export function WordWritingPractice({ word }: { word: string }) {
         {mode !== "guidance" && (
           <canvas
             aria-label={"Khung tập viết chữ " + character}
+            aria-describedby={
+              mode === "white-paper"
+                ? "hsk-writing-sheet-description"
+                : undefined
+            }
             className="hsk-drawing-canvas"
             ref={canvasRef}
             width="600"
@@ -155,8 +193,13 @@ export function WordWritingPractice({ word }: { word: string }) {
           />
         )}
       </div>
+      {mode === "white-paper" ? (
+        <p id="hsk-writing-sheet-description">
+          Giấy trắng chia bốn ô để bạn tự tập viết chữ {character}.
+        </p>
+      ) : null}
       <p role="status" aria-live="polite">
-        {strokeStatus}
+        {strokeStatusMessage}
       </p>
       <div className="canvas-actions">
         <button

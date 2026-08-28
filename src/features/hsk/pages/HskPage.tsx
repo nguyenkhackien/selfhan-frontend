@@ -14,15 +14,27 @@ export function HskPage() {
   const [band, setBand] = useState(1);
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [previousCursors, setPreviousCursors] = useState<string[]>([]);
   const bands = useRemoteResource(hskApi.listBands, "hsk-bands");
   const load = useCallback(
-    () => hskApi.listVocabulary({ band, query: submittedQuery }),
-    [band, submittedQuery],
+    () =>
+      hskApi.listVocabulary({
+        band,
+        cursor: cursor ?? undefined,
+        query: submittedQuery,
+      }),
+    [band, cursor, submittedQuery],
   );
   const vocabulary = useRemoteResource<HskVocabularyPage>(
     load,
-    "hsk-vocabulary:" + band + ":" + submittedQuery,
+    "hsk-vocabulary:" + band + ":" + submittedQuery + ":" + (cursor ?? "first"),
   );
+
+  const resetPagination = () => {
+    setCursor(null);
+    setPreviousCursors([]);
+  };
 
   return (
     <PageFrame title="Từ vựng HSK 3.0" eyebrow="HSK">
@@ -41,7 +53,10 @@ export function HskPage() {
               key={item.band}
               type="button"
               aria-pressed={item.band === band}
-              onClick={() => setBand(item.band)}
+              onClick={() => {
+                setBand(item.band);
+                resetPagination();
+              }}
             >
               {item.displayBand} <span>{item.count}</span>
             </button>
@@ -53,6 +68,7 @@ export function HskPage() {
         onSubmit={(event) => {
           event.preventDefault();
           setSubmittedQuery(query.trim());
+          resetPagination();
         }}
       >
         <label htmlFor="hsk-search">
@@ -78,23 +94,55 @@ export function HskPage() {
         <EmptyState>Chưa tìm thấy từ phù hợp.</EmptyState>
       ) : null}
       {vocabulary.data?.items.length ? (
-        <div className="hsk-vocabulary-grid">
-          {vocabulary.data.items.map((item) => (
-            <Link
-              className="hsk-word-card"
-              key={item.id}
-              to={"/hsk/vocabulary/" + item.id}
+        <>
+          <div className="hsk-vocabulary-grid">
+            {vocabulary.data.items.map((item) => (
+              <Link
+                className="hsk-word-card"
+                key={item.id}
+                to={"/hsk/vocabulary/" + item.id}
+              >
+                <span className="hanzi">{item.simplified}</span>
+                <span className="pinyin">{item.pinyin}</span>
+                <strong>
+                  {item.primaryMeaning ?? "Đang cần rà soát nghĩa"}
+                </strong>
+                {item.sinoViet ? <span>Hán Việt: {item.sinoViet}</span> : null}
+                {item.importStatus === "needs_review" ? (
+                  <small>Cần rà soát dữ liệu</small>
+                ) : null}
+              </Link>
+            ))}
+          </div>
+          <nav className="hsk-pagination" aria-label="Phân trang từ vựng HSK">
+            <span>Trang {previousCursors.length + 1}</span>
+            <button
+              className="button button--secondary"
+              type="button"
+              disabled={previousCursors.length === 0}
+              onClick={() => {
+                const nextPrevious = previousCursors.slice(0, -1);
+                setCursor(previousCursors.at(-1) ?? null);
+                setPreviousCursors(nextPrevious);
+              }}
             >
-              <span className="hanzi">{item.simplified}</span>
-              <span className="pinyin">{item.pinyin}</span>
-              <strong>{item.primaryMeaning ?? "Đang cần rà soát nghĩa"}</strong>
-              {item.sinoViet ? <span>Hán Việt: {item.sinoViet}</span> : null}
-              {item.importStatus === "needs_review" ? (
-                <small>Cần rà soát dữ liệu</small>
-              ) : null}
-            </Link>
-          ))}
-        </div>
+              Trang trước
+            </button>
+            <button
+              className="button button--primary"
+              type="button"
+              disabled={vocabulary.data.nextCursor === null}
+              onClick={() => {
+                const nextCursor = vocabulary.data?.nextCursor;
+                if (nextCursor === null || nextCursor === undefined) return;
+                setPreviousCursors((items) => [...items, cursor ?? ""]);
+                setCursor(nextCursor);
+              }}
+            >
+              Trang tiếp
+            </button>
+          </nav>
+        </>
       ) : null}
     </PageFrame>
   );
