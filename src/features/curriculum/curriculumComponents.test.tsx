@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router";
+import { ThemeProvider } from "@/shared/theme";
 import { AudioControl } from "./components/AudioControl";
 import { Hero } from "./components/Hero";
 import { WritingCanvas } from "./components/WritingCanvas";
@@ -53,7 +54,11 @@ describe("curriculum components and error states", () => {
       configurable: true,
       value: vi.fn(),
     });
-    render(<WritingCanvas character="你" />);
+    render(
+      <ThemeProvider>
+        <WritingCanvas character="你" />
+      </ThemeProvider>,
+    );
 
     const canvas = screen.getByLabelText("Khung tập viết chữ 你");
     fireEvent.pointerDown(canvas, { pointerId: 1, clientX: 20, clientY: 20 });

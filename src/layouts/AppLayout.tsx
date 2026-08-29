@@ -1,4 +1,4 @@
-import { CircleUserRound, Menu, X } from "lucide-react";
+import { CircleUserRound, Menu, Palette, X } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import type { AuthState } from "@/features/auth";
@@ -19,6 +19,7 @@ function AppHeader({ auth, onMenu }: { auth: AuthState; onMenu(): void }) {
           <NavLink to="/admin/content">Quản trị</NavLink>
         )}
         <NavLink to="/hsk">Từ vựng HSK</NavLink>
+        <NavLink to="/settings">Cài đặt giao diện</NavLink>
         <a href="#how-it-works">Cách học</a>
       </nav>
       <div className="header-actions">
@@ -101,6 +102,10 @@ function MobileMenu({
         )}
         <NavLink to="/hsk" onClick={close}>
           Từ vựng HSK
+        </NavLink>
+        <NavLink to="/settings" onClick={close}>
+          <Palette aria-hidden="true" size={18} />
+          Cài đặt giao diện
         </NavLink>
         <a href="#how-it-works" onClick={close}>
           Cách học

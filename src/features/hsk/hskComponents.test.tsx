@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router";
+import { ThemeProvider } from "@/shared/theme";
 import { WordWritingPractice } from "./components/WordWritingPractice";
 import { HskPage } from "./pages/HskPage";
 
@@ -126,7 +127,11 @@ describe("HSK learner components", () => {
     const fetchMock = vi.fn(() => json({ strokes: [] }));
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<WordWritingPractice word="你好" />);
+    render(
+      <ThemeProvider>
+        <WordWritingPractice word="你好" />
+      </ThemeProvider>,
+    );
 
     expect(await screen.findByText("Dữ liệu nét đã sẵn sàng.")).not.toBeNull();
     const firstWriterOptions = writerMocks.create.mock.calls[0]?.[2] as {
@@ -166,7 +171,11 @@ describe("HSK learner components", () => {
       },
     );
 
-    render(<WordWritingPractice word="你" />);
+    render(
+      <ThemeProvider>
+        <WordWritingPractice word="你" />
+      </ThemeProvider>,
+    );
 
     expect(
       await screen.findByText("Chưa có dữ liệu nét cục bộ cho chữ này."),

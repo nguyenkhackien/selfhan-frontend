@@ -70,6 +70,8 @@ describe("SelfHan learner flows", () => {
     cleanup();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    window.localStorage.clear();
+    delete document.documentElement.dataset.theme;
     window.history.replaceState({}, "", "/");
   });
 
@@ -182,6 +184,27 @@ describe("SelfHan learner flows", () => {
     expect(
       screen.getByRole("heading", { name: "Không tìm thấy trang" }),
     ).not.toBeNull();
+  });
+
+  it("selects and retains an accessible color theme", () => {
+    installApi();
+    window.localStorage.setItem("selfhan-theme", "not-a-theme");
+    window.history.replaceState({}, "", "/settings");
+    render(<App />);
+    expect(
+      screen.getByRole("heading", { name: "Cài đặt giao diện" }),
+    ).not.toBeNull();
+    expect(screen.getByRole("radio", { name: /Sage/ })).toHaveProperty(
+      "checked",
+      true,
+    );
+    fireEvent.click(screen.getByRole("radio", { name: /Terracotta/ }));
+    expect(screen.getByRole("radio", { name: /Terracotta/ })).toHaveProperty(
+      "checked",
+      true,
+    );
+    expect(document.documentElement.dataset.theme).toBe("terracotta");
+    expect(window.localStorage.getItem("selfhan-theme")).toBe("terracotta");
   });
 
   it("opens and closes the mobile dialog", () => {

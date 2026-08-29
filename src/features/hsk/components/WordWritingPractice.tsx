@@ -1,5 +1,6 @@
 import HanziWriter from "hanzi-writer";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { getThemeColor, useTheme } from "@/shared/theme";
 
 type WritingMode = "guidance" | "background" | "white-paper";
 
@@ -23,6 +24,7 @@ export function WordWritingPractice({ word }: { word: string }) {
   const [index, setIndex] = useState(0);
   const [mode, setMode] = useState<WritingMode>("guidance");
   const [strokeStatus, setStrokeStatus] = useState<StrokeStatus | null>(null);
+  const { theme } = useTheme();
   const targetRef = useRef<HTMLDivElement | null>(null);
   const writerRef = useRef<HanziWriter | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -38,6 +40,7 @@ export function WordWritingPractice({ word }: { word: string }) {
   useEffect(() => {
     const target = targetRef.current;
     if (!target || !character) return;
+    target.dataset.theme = theme;
     target.replaceChildren();
     if (mode === "white-paper") {
       writerRef.current = null;
@@ -51,8 +54,8 @@ export function WordWritingPractice({ word }: { word: string }) {
       padding: 18,
       showCharacter: mode === "guidance",
       showOutline: mode === "background",
-      strokeColor: "#42664f",
-      outlineColor: "#b7cbb9",
+      strokeColor: getThemeColor("--color-primary-hover"),
+      outlineColor: getThemeColor("--color-canvas-guide"),
       charDataLoader: loadLocalCharacter,
       onLoadCharDataSuccess: () => {
         if (!active) return;
@@ -83,7 +86,7 @@ export function WordWritingPractice({ word }: { word: string }) {
       writerRef.current = null;
       target.replaceChildren();
     };
-  }, [character, mode]);
+  }, [character, mode, theme]);
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -116,7 +119,7 @@ export function WordWritingPractice({ word }: { word: string }) {
     const context = canvasRef.current?.getContext("2d");
     const position = point(event);
     if (!context || !position) return;
-    context.strokeStyle = "#42664f";
+    context.strokeStyle = getThemeColor("--color-primary-hover");
     context.lineCap = "round";
     context.lineJoin = "round";
     context.lineWidth = 9;

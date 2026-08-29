@@ -2,7 +2,7 @@
 
 React and Vite learner application for SelfHan. It consumes the current NestJS
 foundation API and presents the Vietnamese-first Level → Unit → Lesson learning
-path with a responsive green sidebar layout.
+path with a responsive, theme-aware sidebar layout.
 
 ## Requirements
 
@@ -33,6 +33,8 @@ the API is served from another origin.
   band through cursor pages
 - `/hsk/vocabulary/:id`: word detail with ordered Vietnamese senses and three
   local writing modes: guidance, background character, and white paper
+- `/settings`: theme settings with Sage, Indigo, and Terracotta choices saved
+  locally in the browser
 - `/login` and `/register`: credentialed auth flows using the access token in
   memory and the backend's HttpOnly refresh cookie
 - `/dashboard`: learner dashboard for lesson completion, learned words, streak,

@@ -5,17 +5,20 @@ import {
   useState,
   type PointerEvent,
 } from "react";
+import { getThemeColor, useTheme } from "@/shared/theme";
 
 export function WritingCanvas({ character }: { character: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
   const [hasStroke, setHasStroke] = useState(false);
+  const { theme } = useTheme();
   const drawTemplate = useCallback(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
     if (!canvas || !context) return;
+    canvas.dataset.theme = theme;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.strokeStyle = "#b7cbb9";
+    context.strokeStyle = getThemeColor("--color-canvas-guide");
     context.lineWidth = 2;
     context.setLineDash([8, 8]);
     context.beginPath();
@@ -25,12 +28,12 @@ export function WritingCanvas({ character }: { character: string }) {
     context.lineTo(canvas.width - 20, canvas.height / 2);
     context.stroke();
     context.setLineDash([]);
-    context.fillStyle = "rgba(79, 70, 229, 0.10)";
+    context.fillStyle = getThemeColor("--color-canvas-character");
     context.font = "260px 'Noto Serif SC', serif";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(character, canvas.width / 2, canvas.height / 2 + 8);
-  }, [character]);
+  }, [character, theme]);
   useEffect(() => {
     drawTemplate();
   }, [drawTemplate]);
@@ -57,7 +60,7 @@ export function WritingCanvas({ character }: { character: string }) {
     const context = canvasRef.current?.getContext("2d");
     if (!context) return;
     const position = point(event);
-    context.strokeStyle = "#42664f";
+    context.strokeStyle = getThemeColor("--color-primary-hover");
     context.lineCap = "round";
     context.lineJoin = "round";
     context.lineWidth = 9;

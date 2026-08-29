@@ -148,3 +148,30 @@ test("navigation remains usable at mobile width", async ({ page }) => {
     page.getByRole("heading", { name: "Các Level đang mở" }),
   ).toBeVisible();
 });
+
+test("learners can select and retain a color theme", async ({ page }) => {
+  for (const width of [375, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/settings");
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+  }
+  await expect(page.getByRole("radio", { name: /Sage/ })).toBeChecked();
+  await page.getByRole("radio", { name: /Terracotta/ }).check();
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-theme",
+    "terracotta",
+  );
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(255, 248, 244)",
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.reload();
+  await expect(page.getByRole("radio", { name: /Terracotta/ })).toBeChecked();
+});
