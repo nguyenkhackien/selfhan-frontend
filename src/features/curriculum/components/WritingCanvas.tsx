@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   type PointerEvent,
@@ -11,6 +12,12 @@ export function WritingCanvas({ character }: { character: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
   const [hasStroke, setHasStroke] = useState(false);
+  const [typedEntry, setTypedEntry] = useState({ character, value: "" });
+  const typedCharacter =
+    typedEntry.character === character ? typedEntry.value : "";
+  const keyboardInputId = useId();
+  const keyboardDescriptionId = useId();
+  const keyboardStatusId = useId();
   const { theme } = useTheme();
   const drawTemplate = useCallback(() => {
     const canvas = canvasRef.current;
@@ -92,6 +99,37 @@ export function WritingCanvas({ character }: { character: string }) {
         onPointerUp={stop}
         onPointerCancel={stop}
       />
+      <div className="writing-keyboard-alternative">
+        <label htmlFor={keyboardInputId}>
+          Nhập chữ {character} bằng bàn phím
+        </label>
+        <input
+          autoComplete="off"
+          id={keyboardInputId}
+          inputMode="text"
+          maxLength={1}
+          onChange={(event) => {
+            setTypedEntry({
+              character,
+              value: Array.from(event.target.value).at(-1) ?? "",
+            });
+          }}
+          type="text"
+          value={typedCharacter}
+          aria-describedby={`${keyboardDescriptionId} ${keyboardStatusId}`}
+        />
+        <p id={keyboardDescriptionId}>
+          Không có bộ gõ? Bạn vẫn có thể dùng bàn phím để nhập chữ mục tiêu; nội
+          dung này chỉ kiểm tra tại chỗ và không được lưu.
+        </p>
+        <p id={keyboardStatusId} role="status" aria-live="polite">
+          {typedCharacter
+            ? typedCharacter === character
+              ? "Chữ nhập trùng với mục tiêu."
+              : `Hãy thử nhập chữ ${character}.`
+            : "Có thể dùng bàn phím thay cho thao tác vẽ."}
+        </p>
+      </div>
       <div className="canvas-actions">
         <span aria-live="polite">
           {hasStroke ? "Bạn đang luyện viết" : "Sẵn sàng để bắt đầu"}

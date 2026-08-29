@@ -35,7 +35,9 @@ function ReviewContent() {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [tagMessage, setTagMessage] = useState<string | null>(null);
+  const [tagError, setTagError] = useState<string | null>(null);
   if (resource.loading) return <LoadingState />;
   if (resource.error)
     return <ErrorState message={resource.error} onRetry={resource.reload} />;
@@ -58,17 +60,26 @@ function ReviewContent() {
   }
   const rate = async (rating: ReviewRating) => {
     if (saving) return;
+    setReviewError(null);
     setSaving(true);
     try {
       await learningApi.review(word.vocabularyId, rating);
       setIndex((current) => current + 1);
       setRevealed(false);
       setTagMessage(null);
+    } catch (caught) {
+      setReviewError(
+        caught instanceof Error
+          ? caught.message
+          : "Chưa thể lưu đánh giá. Vui lòng thử lại.",
+      );
     } finally {
       setSaving(false);
     }
   };
   const markTag = async (tag: "favorite" | "difficult") => {
+    setTagError(null);
+    setTagMessage(null);
     try {
       await learningApi.tag(word.vocabularyId, tag);
       setTagMessage(
@@ -77,13 +88,17 @@ function ReviewContent() {
           : "Đã đánh dấu cần ôn kỹ.",
       );
     } catch (error) {
-      setTagMessage(
+      setTagError(
         error instanceof Error ? error.message : "Chưa thể lưu nhãn này.",
       );
     }
   };
   return (
-    <section className="review-shell" aria-labelledby="review-card-heading">
+    <section
+      className="review-shell"
+      aria-labelledby="review-card-heading"
+      aria-busy={saving}
+    >
       <Link className="back-link" to="/dashboard">
         <ArrowLeft aria-hidden="true" size={17} />
         Về không gian học
@@ -119,7 +134,26 @@ function ReviewContent() {
               Cần ôn kỹ
             </button>
           </div>
-          {tagMessage && <p className="review-tag-message">{tagMessage}</p>}
+          {tagMessage && (
+            <p className="review-tag-message" role="status" aria-live="polite">
+              {tagMessage}
+            </p>
+          )}
+          {tagError && (
+            <p className="form-error" role="alert">
+              {tagError}
+            </p>
+          )}
+          {reviewError && (
+            <p className="form-error" role="alert">
+              {reviewError}
+            </p>
+          )}
+          {saving && (
+            <p role="status" aria-live="polite">
+              Đang lưu đánh giá…
+            </p>
+          )}
           <div className="review-rating-row" aria-label="Mức độ ghi nhớ">
             {RATING_LABELS.map((item) => (
               <button

@@ -1,9 +1,23 @@
 import { CircleUserRound, Menu, Palette, X } from "lucide-react";
-import { useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import type { AuthState } from "@/features/auth";
 
-function AppHeader({ auth, onMenu }: { auth: AuthState; onMenu(): void }) {
+function AppHeader({
+  auth,
+  menuOpen,
+  onMenu,
+}: {
+  auth: AuthState;
+  menuOpen: boolean;
+  onMenu(): void;
+}) {
   return (
     <header className="site-header">
       <Link className="brand" to="/" aria-label="SelfHan — trang chủ">
@@ -20,7 +34,7 @@ function AppHeader({ auth, onMenu }: { auth: AuthState; onMenu(): void }) {
         )}
         <NavLink to="/hsk">Từ vựng HSK</NavLink>
         <NavLink to="/settings">Cài đặt giao diện</NavLink>
-        <a href="#how-it-works">Cách học</a>
+        <Link to="/#how-it-works">Cách học</Link>
       </nav>
       <div className="header-actions">
         {auth.user ? (
@@ -44,7 +58,9 @@ function AppHeader({ auth, onMenu }: { auth: AuthState; onMenu(): void }) {
         )}
         <button
           className="menu-button"
-          aria-label="Mở điều hướng"
+          aria-label={menuOpen ? "Đóng điều hướng" : "Mở điều hướng"}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
           type="button"
           onClick={onMenu}
         >
@@ -64,9 +80,54 @@ function MobileMenu({
   close(): void;
   auth: AuthState;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          '.mobile-menu-content a[href], .mobile-menu-content button:not(:disabled), .mobile-menu-content [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [close, open]);
+
   if (!open) return null;
   return (
     <div
+      id="mobile-navigation"
+      ref={dialogRef}
       className="mobile-menu-panel"
       role="dialog"
       aria-modal="true"
@@ -76,12 +137,14 @@ function MobileMenu({
         className="menu-scrim"
         aria-label="Đóng điều hướng"
         onClick={close}
+        tabIndex={-1}
         type="button"
       />
       <div className="mobile-menu-content">
         <button
           className="icon-button"
           aria-label="Đóng điều hướng"
+          ref={closeButtonRef}
           onClick={close}
           type="button"
         >
@@ -107,9 +170,9 @@ function MobileMenu({
           <Palette aria-hidden="true" size={18} />
           Cài đặt giao diện
         </NavLink>
-        <a href="#how-it-works" onClick={close}>
+        <Link to="/#how-it-works" onClick={close}>
           Cách học
-        </a>
+        </Link>
         {auth.user ? (
           <button
             className="button button--secondary"
@@ -137,19 +200,27 @@ function MobileMenu({
 
 export function AppLayout({ auth }: { auth: AuthState }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const handleSkip = (event: MouseEvent<HTMLAnchorElement>) => {
+    const main = document.getElementById("main-content");
+    if (!main) return;
+    event.preventDefault();
+    main.focus();
+    main.scrollIntoView?.({ block: "start" });
+  };
   return (
     <div className="app">
-      <a className="skip-link" href="#main-content">
+      <a className="skip-link" href="#main-content" onClick={handleSkip}>
         Bỏ qua điều hướng
       </a>
-      <AppHeader auth={auth} onMenu={() => setMenuOpen(true)} />
-      <MobileMenu
-        open={menuOpen}
-        close={() => setMenuOpen(false)}
+      <AppHeader
         auth={auth}
+        menuOpen={menuOpen}
+        onMenu={() => setMenuOpen((value) => !value)}
       />
+      <MobileMenu open={menuOpen} close={closeMenu} auth={auth} />
       <div className="app-content">
-        <main id="main-content">
+        <main id="main-content" tabIndex={-1}>
           <Outlet />
         </main>
         <footer className="site-footer">

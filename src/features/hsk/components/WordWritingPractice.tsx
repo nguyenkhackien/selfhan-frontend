@@ -1,5 +1,5 @@
 import HanziWriter from "hanzi-writer";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useId, useRef, useState, type PointerEvent } from "react";
 import { getThemeColor, useTheme } from "@/shared/theme";
 
 type WritingMode = "guidance" | "background" | "white-paper";
@@ -22,14 +22,22 @@ function loadLocalCharacter(character: string) {
 export function WordWritingPractice({ word }: { word: string }) {
   const characters = Array.from(word);
   const [index, setIndex] = useState(0);
+  const character = characters[index] ?? "";
   const [mode, setMode] = useState<WritingMode>("guidance");
   const [strokeStatus, setStrokeStatus] = useState<StrokeStatus | null>(null);
+  const [typedEntry, setTypedEntry] = useState({ word, character, value: "" });
   const { theme } = useTheme();
   const targetRef = useRef<HTMLDivElement | null>(null);
   const writerRef = useRef<HanziWriter | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isDrawing = useRef(false);
-  const character = characters[index] ?? "";
+  const keyboardInputId = useId();
+  const keyboardDescriptionId = useId();
+  const keyboardStatusId = useId();
+  const typedCharacter =
+    typedEntry.word === word && typedEntry.character === character
+      ? typedEntry.value
+      : "";
   const strokeStatusMessage =
     mode === "white-paper"
       ? "Giấy trắng sẵn sàng để tập viết tự do."
@@ -94,6 +102,13 @@ export function WordWritingPractice({ word }: { word: string }) {
     if (canvas && context) context.clearRect(0, 0, canvas.width, canvas.height);
   };
 
+  const selectCharacter = (nextIndex: number) => {
+    const nextCharacter = characters[nextIndex] ?? "";
+    setIndex(nextIndex);
+    setTypedEntry({ word, character: nextCharacter, value: "" });
+    clearCanvas();
+  };
+
   const point = (event: PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -138,8 +153,7 @@ export function WordWritingPractice({ word }: { word: string }) {
             key={itemIndex + item}
             type="button"
             onClick={() => {
-              setIndex(itemIndex);
-              clearCanvas();
+              selectCharacter(itemIndex);
             }}
             aria-pressed={itemIndex === index}
           >
@@ -152,7 +166,7 @@ export function WordWritingPractice({ word }: { word: string }) {
           [
             ["guidance", "Hướng dẫn"],
             ["background", "Chữ nền"],
-            ["white-paper", "White paper"],
+            ["white-paper", "Giấy trắng"],
           ] as const
         ).map(([value, label]) => (
           <button
@@ -201,6 +215,38 @@ export function WordWritingPractice({ word }: { word: string }) {
           Giấy trắng chia bốn ô để bạn tự tập viết chữ {character}.
         </p>
       ) : null}
+      <div className="writing-keyboard-alternative">
+        <label htmlFor={keyboardInputId}>
+          Nhập chữ {character} bằng bàn phím
+        </label>
+        <input
+          autoComplete="off"
+          id={keyboardInputId}
+          inputMode="text"
+          maxLength={1}
+          onChange={(event) => {
+            setTypedEntry({
+              word,
+              character,
+              value: Array.from(event.target.value).at(-1) ?? "",
+            });
+          }}
+          type="text"
+          value={typedCharacter}
+          aria-describedby={`${keyboardDescriptionId} ${keyboardStatusId}`}
+        />
+        <p id={keyboardDescriptionId}>
+          Bạn có thể nhập chữ mục tiêu bằng bộ gõ tiếng Trung; nội dung chỉ kiểm
+          tra tại chỗ và không được lưu.
+        </p>
+        <p id={keyboardStatusId} role="status" aria-live="polite">
+          {typedCharacter
+            ? typedCharacter === character
+              ? "Chữ nhập trùng với mục tiêu."
+              : `Hãy thử nhập chữ ${character}.`
+            : "Có thể dùng bàn phím thay cho thao tác vẽ."}
+        </p>
+      </div>
       <p role="status" aria-live="polite">
         {strokeStatusMessage}
       </p>
@@ -226,8 +272,7 @@ export function WordWritingPractice({ word }: { word: string }) {
           type="button"
           disabled={index === 0}
           onClick={() => {
-            setIndex((value) => value - 1);
-            clearCanvas();
+            selectCharacter(index - 1);
           }}
         >
           Chữ trước
@@ -237,8 +282,7 @@ export function WordWritingPractice({ word }: { word: string }) {
           type="button"
           disabled={index === characters.length - 1}
           onClick={() => {
-            setIndex((value) => value + 1);
-            clearCanvas();
+            selectCharacter(index + 1);
           }}
         >
           Chữ tiếp

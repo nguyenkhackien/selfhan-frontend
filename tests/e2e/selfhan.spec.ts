@@ -126,11 +126,16 @@ test("learners can follow Level → Unit → Lesson on desktop", async ({
   );
   await page.getByRole("link", { name: /Tiếng Trung nhập môn/i }).click();
   await page.getByRole("link", { name: "Chào hỏi" }).click();
+  await page.getByRole("link", { name: "Quay lại Level" }).click();
+  await expect(page).toHaveURL(/\/levels\/starter-chinese$/);
+  await page.getByRole("link", { name: "Chào hỏi" }).click();
   await page.getByRole("link", { name: "Nói xin chào" }).click();
   await expect(
     page.getByRole("heading", { name: "Nói xin chào" }),
   ).toBeVisible();
   await expect(page.getByLabel("Khung tập viết chữ 你")).toBeVisible();
+  await page.getByRole("link", { name: "Quay lại Unit" }).click();
+  await expect(page).toHaveURL(/\/units\/greetings$/);
   await expect(page.getByLabel("Khung tập viết chữ 你")).toHaveCSS(
     "border-color",
     "rgb(213, 198, 165)",
@@ -141,12 +146,46 @@ test("learners can follow Level → Unit → Lesson on desktop", async ({
 test("navigation remains usable at mobile width", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: "Mở điều hướng" }).click();
+  const menuButton = page.locator(".menu-button");
+  await expect(page.locator(".desktop-nav")).toBeHidden();
+  await menuButton.click();
   await expect(page.getByRole("dialog", { name: "Điều hướng" })).toBeVisible();
+  await expect(menuButton).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Điều hướng" })).toBeHidden();
+  await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+  await expect(menuButton).toBeFocused();
+  await expect(page.locator("body")).toHaveCSS("overflow", "visible");
+  await menuButton.click();
   await page.getByRole("link", { name: "Lộ trình học" }).last().click();
   await expect(
     page.getByRole("heading", { name: "Các Level đang mở" }),
   ).toBeVisible();
+});
+
+test("keeps the home hero readable in the tablet layout", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+  expect(
+    await page.locator(".hero").evaluate((element) => {
+      return getComputedStyle(element).gridTemplateColumns.split(" ").length;
+    }),
+  ).toBe(1);
+});
+
+test("keeps home anchors and skip-link focus usable from deep routes", async ({
+  page,
+}) => {
+  await page.goto("/levels");
+  await page.getByRole("link", { name: "Cách học" }).click();
+  await expect(page).toHaveURL(/\/#how-it-works$/);
+  await expect(page.locator("#how-it-works")).toBeVisible();
+  const skipLink = page.getByRole("link", { name: "Bỏ qua điều hướng" });
+  await skipLink.focus();
+  await expect(skipLink).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
 });
 
 test("learners can select and retain a color theme", async ({ page }) => {

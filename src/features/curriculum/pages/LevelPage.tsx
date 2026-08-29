@@ -43,6 +43,7 @@ export function LevelPage() {
               key={unit.id}
               className="sequence-item"
               to={`/units/${unit.slug}`}
+              state={{ from: `/levels/${level.slug}` }}
             >
               <span>{index + 1}</span>
               <div>

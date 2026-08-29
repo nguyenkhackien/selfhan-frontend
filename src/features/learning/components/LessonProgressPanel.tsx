@@ -17,6 +17,7 @@ export function LessonProgressPanel({ lessonId }: { lessonId: string }) {
   );
   const resource = useRemoteResource(load, `lesson-progress:${lessonId}`);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   if (resource.loading) return <LoadingState />;
   if (resource.error)
     return <ErrorState message={resource.error} onRetry={resource.reload} />;
@@ -24,6 +25,7 @@ export function LessonProgressPanel({ lessonId }: { lessonId: string }) {
   if (!progress) return null;
   const toggle = async (section: string) => {
     if (saving) return;
+    setSaveError(null);
     const next = progress.sectionsSeen.includes(section)
       ? progress.sectionsSeen.filter((item) => item !== section)
       : [...progress.sectionsSeen, section];
@@ -31,6 +33,12 @@ export function LessonProgressPanel({ lessonId }: { lessonId: string }) {
     try {
       await learningApi.updateLessonProgress(lessonId, next);
       resource.reload();
+    } catch (caught) {
+      setSaveError(
+        caught instanceof Error
+          ? caught.message
+          : "Chưa thể lưu tiến độ. Vui lòng thử lại.",
+      );
     } finally {
       setSaving(false);
     }
@@ -39,6 +47,7 @@ export function LessonProgressPanel({ lessonId }: { lessonId: string }) {
     <section
       className="lesson-progress-panel"
       aria-labelledby="lesson-progress-heading"
+      aria-busy={saving}
     >
       <div>
         <p className="eyebrow">TIẾN ĐỘ BÀI HỌC</p>
@@ -50,6 +59,7 @@ export function LessonProgressPanel({ lessonId }: { lessonId: string }) {
           return (
             <button
               className={complete ? "is-complete" : ""}
+              aria-pressed={complete}
               disabled={saving}
               key={section.id}
               onClick={() => void toggle(section.id)}
@@ -65,11 +75,18 @@ export function LessonProgressPanel({ lessonId }: { lessonId: string }) {
           );
         })}
       </div>
-      <p>
-        {progress.status === "completed"
-          ? "Bài học đã hoàn thành."
-          : "Hoàn tất ba phần và đạt quiz để hoàn thành bài học."}
+      <p className="lesson-progress-status" role="status" aria-live="polite">
+        {saving
+          ? "Đang lưu tiến độ…"
+          : progress.status === "completed"
+            ? "Bài học đã hoàn thành."
+            : "Hoàn tất ba phần và đạt quiz để hoàn thành bài học."}
       </p>
+      {saveError && (
+        <p className="form-error" role="alert">
+          {saveError}
+        </p>
+      )}
     </section>
   );
 }

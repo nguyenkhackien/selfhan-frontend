@@ -1,6 +1,6 @@
 import { ArrowRight, PenLine } from "lucide-react";
 import { useCallback } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import {
   BackLink,
   EmptyState,
@@ -16,8 +16,15 @@ import type { UnitDetail } from "../types/curriculum";
 
 export function UnitPage({ auth }: { auth?: AuthState }) {
   const { slug = "" } = useParams();
+  const location = useLocation();
   const load = useCallback(() => curriculumApi.getUnit(slug), [slug]);
   const resource = useRemoteResource<UnitDetail>(load, `unit:${slug}`);
+  const navigationState = location.state as { from?: unknown } | null;
+  const parentPath =
+    typeof navigationState?.from === "string" &&
+    navigationState.from.startsWith("/")
+      ? navigationState.from
+      : "/levels";
   if (resource.loading) {
     return (
       <PageFrame title="Đang mở Unit">
@@ -36,7 +43,7 @@ export function UnitPage({ auth }: { auth?: AuthState }) {
   if (!unit) return null;
   return (
     <PageFrame title={unit.title} eyebrow="UNIT">
-      <BackLink to="/levels">Quay lại Level</BackLink>
+      <BackLink to={parentPath}>Quay lại Level</BackLink>
       <p className="lead">{unit.description}</p>
       <section className="lesson-list" aria-label="Danh sách Lesson">
         {unit.lessons.length ? (
@@ -44,6 +51,7 @@ export function UnitPage({ auth }: { auth?: AuthState }) {
             <Link
               className="lesson-card"
               to={`/lessons/${lesson.slug}`}
+              state={{ from: `/units/${unit.slug}` }}
               key={lesson.id}
             >
               <span className="lesson-number">Bài {index + 1}</span>

@@ -97,10 +97,15 @@ function AdminContentWorkspace() {
         Tạo cấu trúc cấp độ → chủ đề → bài học, rồi bổ sung quiz bằng các ID
         hiển thị trong bảng.
       </p>
-      <div className="admin-resource-tabs" aria-label="Loại nội dung">
+      <div
+        className="admin-resource-tabs"
+        role="group"
+        aria-label="Loại nội dung"
+      >
         {ADMIN_RESOURCES.map((item) => (
           <button
             className={resource === item ? "is-active" : ""}
+            aria-pressed={resource === item}
             key={item}
             onClick={() => {
               setResource(item);

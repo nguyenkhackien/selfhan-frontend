@@ -71,6 +71,36 @@ describe("curriculum components and error states", () => {
     expect(context.lineTo).toHaveBeenCalled();
   });
 
+  it("offers a keyboard writing alternative", () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+      beginPath: vi.fn(),
+      clearRect: vi.fn(),
+      fillText: vi.fn(),
+      lineTo: vi.fn(),
+      moveTo: vi.fn(),
+      setLineDash: vi.fn(),
+      stroke: vi.fn(),
+    } as unknown as CanvasRenderingContext2D);
+    render(
+      <ThemeProvider>
+        <WritingCanvas character="你" />
+      </ThemeProvider>,
+    );
+
+    const input = screen.getByRole("textbox", {
+      name: "Nhập chữ 你 bằng bàn phím",
+    });
+    expect(input).not.toBeNull();
+    fireEvent.change(input, { target: { value: "好" } });
+    expect(screen.getByText("Hãy thử nhập chữ 你.")).not.toBeNull();
+    fireEvent.change(input, { target: { value: "你" } });
+    expect(screen.getByText("Chữ nhập trùng với mục tiêu.")).not.toBeNull();
+    fireEvent.change(input, { target: { value: "" } });
+    expect(
+      screen.getByText("Có thể dùng bàn phím thay cho thao tác vẽ."),
+    ).not.toBeNull();
+  });
+
   it.each([
     ["/levels/missing", LevelPage, "Không mở được Level"],
     ["/units/missing", UnitPage, "Không mở được Unit"],

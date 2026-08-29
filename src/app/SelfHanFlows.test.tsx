@@ -1,7 +1,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router";
 import App from "../App";
 import { authApi } from "@/features/auth";
+import { AppLayout } from "@/layouts/AppLayout";
 
 const level = {
   id: "level",
@@ -140,6 +142,33 @@ describe("SelfHan learner flows", () => {
     );
   });
 
+  it("validates auth fields before sending credentials", () => {
+    installApi();
+    window.history.replaceState({}, "", "/login");
+    render(<App />);
+    const email = screen.getByRole("textbox", { name: "Email" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+
+    expect(screen.getByText("Vui lòng nhập email.")).not.toBeNull();
+    expect(screen.getByText("Vui lòng nhập mật khẩu.")).not.toBeNull();
+    expect(email.getAttribute("aria-invalid")).toBe("true");
+    expect(document.activeElement).toBe(email);
+  });
+
+  it("supports showing and hiding the password field", () => {
+    installApi();
+    window.history.replaceState({}, "", "/login");
+    render(<App />);
+    const password = screen.getByLabelText("Mật khẩu");
+
+    expect(password.getAttribute("type")).toBe("password");
+    fireEvent.click(screen.getByRole("button", { name: "Hiện mật khẩu" }));
+    expect(password.getAttribute("type")).toBe("text");
+    fireEvent.click(screen.getByRole("button", { name: "Ẩn mật khẩu" }));
+    expect(password.getAttribute("type")).toBe("password");
+  });
+
   it("uses a safe fallback message for an unexpected auth failure", async () => {
     installApi();
     vi.spyOn(authApi, "login").mockRejectedValue(new Error("offline"));
@@ -210,11 +239,102 @@ describe("SelfHan learner flows", () => {
   it("opens and closes the mobile dialog", () => {
     installApi();
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Mở điều hướng" }));
+    const trigger = screen.getByRole("button", { name: "Mở điều hướng" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(document.body.style.overflow).toBe("hidden");
     expect(screen.getByRole("dialog", { name: "Điều hướng" })).not.toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Điều hướng" })).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("sends the how-it-works link to the home section", () => {
+    installApi();
+    window.history.replaceState({}, "", "/levels");
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("link", { name: "Cách học" }));
+
+    expect(window.location.pathname).toBe("/");
+    expect(window.location.hash).toBe("#how-it-works");
+  });
+
+  it("moves keyboard focus to the main content from the skip link", () => {
+    installApi();
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("link", { name: "Bỏ qua điều hướng" }));
+
+    expect(document.activeElement).toBe(
+      document.getElementById("main-content"),
+    );
+  });
+
+  it("keeps an authenticated admin drawer keyboard-operable", () => {
+    const logout = vi.fn();
+    const adminAuth = {
+      user: {
+        id: "admin",
+        email: "admin@example.com",
+        role: "admin" as const,
+        createdAt: "2026-01-01",
+      },
+      restoring: false,
+      error: null,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout,
+    };
+    render(
+      <MemoryRouter>
+        <AppLayout auth={adminAuth} />
+      </MemoryRouter>,
+    );
+    const trigger = screen.getByRole("button", { name: "Mở điều hướng" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = screen.getByRole("dialog", { name: "Điều hướng" });
+    const closeButtons = screen.getAllByRole("button", {
+      name: "Đóng điều hướng",
+    });
+    const closeButton = closeButtons[closeButtons.length - 1]!;
+    expect(document.activeElement).toBe(closeButton);
+    expect(screen.getAllByRole("link", { name: "Quản trị" })).toHaveLength(2);
+    expect(
+      screen.getAllByRole("link", { name: "Không gian học" }),
+    ).toHaveLength(2);
+
+    fireEvent.keyDown(document, { key: "ArrowDown" });
+    const menuContent = dialog.querySelector(".mobile-menu-content")!;
+    const focusable = Array.from(
+      menuContent.querySelectorAll<HTMLElement>("a[href], button"),
+    );
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    last.focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(first);
+    first.focus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    fireEvent.click(closeButton);
+    expect(screen.queryByRole("dialog", { name: "Điều hướng" })).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+
+    fireEvent.click(trigger);
     fireEvent.click(
       screen.getAllByRole("button", { name: "Đóng điều hướng" })[0]!,
     );
+    expect(screen.queryByRole("dialog", { name: "Điều hướng" })).toBeNull();
+
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getAllByRole("button", { name: "Đăng xuất" })[1]!);
+    expect(logout).toHaveBeenCalledOnce();
     expect(screen.queryByRole("dialog", { name: "Điều hướng" })).toBeNull();
   });
 });

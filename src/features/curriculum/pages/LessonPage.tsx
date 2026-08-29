@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import {
   BackLink,
   EmptyState,
@@ -18,8 +18,15 @@ import type { LessonDetail } from "../types/curriculum";
 
 export function LessonPage({ auth }: { auth?: AuthState }) {
   const { slug = "" } = useParams();
+  const location = useLocation();
   const load = useCallback(() => curriculumApi.getLesson(slug), [slug]);
   const resource = useRemoteResource<LessonDetail>(load, `lesson:${slug}`);
+  const navigationState = location.state as { from?: unknown } | null;
+  const parentPath =
+    typeof navigationState?.from === "string" &&
+    navigationState.from.startsWith("/")
+      ? navigationState.from
+      : "/levels";
   if (resource.loading) {
     return (
       <PageFrame title="Đang mở bài học">
@@ -38,7 +45,11 @@ export function LessonPage({ auth }: { auth?: AuthState }) {
   if (!lesson) return null;
   return (
     <PageFrame title={lesson.title} eyebrow="LESSON">
-      <BackLink to="/levels">Quay lại lộ trình</BackLink>
+      <BackLink to={parentPath}>
+        {parentPath.startsWith("/units/")
+          ? "Quay lại Unit"
+          : "Quay lại lộ trình"}
+      </BackLink>
       <p className="lead">{lesson.summary}</p>
       <section
         className="vocabulary-section"
