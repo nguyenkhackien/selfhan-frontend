@@ -7,7 +7,7 @@ export const adminApi = {
   create: (resource: AdminResource, data: Record<string, unknown>) =>
     request<ContentRecord>(`/admin/${resource}`, {
       method: "POST",
-      body: JSON.stringify({ data }),
+      data: { data },
     }),
   update: (
     resource: AdminResource,
@@ -16,7 +16,7 @@ export const adminApi = {
   ) =>
     request<ContentRecord>(`/admin/${resource}/${id}`, {
       method: "PATCH",
-      body: JSON.stringify({ data }),
+      data: { data },
     }),
   archive: (resource: AdminResource, id: string) =>
     request<ContentRecord>(`/admin/${resource}/${id}/archive`, {

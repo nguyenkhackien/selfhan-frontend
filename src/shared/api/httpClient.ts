@@ -1,3 +1,6 @@
+import axios from "axios";
+import type { AxiosRequestConfig } from "axios";
+
 export interface ApiErrorShape {
   code: string;
   message: string;
@@ -19,47 +22,78 @@ export const apiBaseUrl = (
   configuredBaseUrl || "http://localhost:3000/api/v1"
 ).replace(/\/$/, "");
 
+export const apiTimeoutMs = 15_000;
+
 let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
-export async function request<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<T> {
-  const headers = new Headers(init.headers);
-  headers.set("accept", "application/json");
-  if (init.body) headers.set("content-type", "application/json");
-  if (accessToken) headers.set("authorization", `Bearer ${accessToken}`);
+export const apiClient = axios.create({
+  baseURL: apiBaseUrl,
+  timeout: apiTimeoutMs,
+  withCredentials: true,
+  headers: {
+    Accept: "application/json",
+  },
+});
 
-  let response: Response;
-  try {
-    response = await fetch(`${apiBaseUrl}${path}`, {
-      ...init,
-      credentials: "include",
-      headers,
-    });
-  } catch {
-    throw new ApiError(0, {
+apiClient.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers.setAuthorization(`Bearer ${accessToken}`);
+  }
+  return config;
+});
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getBackendError(payload: unknown): ApiErrorShape | null {
+  if (!isRecord(payload) || !isRecord(payload.error)) return null;
+
+  const { code, message, requestId } = payload.error;
+  if (code !== undefined && typeof code !== "string") return null;
+  if (typeof message !== "string") return null;
+  if (requestId !== undefined && typeof requestId !== "string") return null;
+
+  return {
+    code: typeof code === "string" ? code : "REQUEST_FAILED",
+    message,
+    ...(requestId ? { requestId } : {}),
+  };
+}
+
+function toApiError(error: unknown): ApiError {
+  if (!axios.isAxiosError(error)) {
+    return new ApiError(0, {
       code: "NETWORK_ERROR",
       message: "Không thể kết nối máy chủ. Hãy kiểm tra mạng rồi thử lại.",
     });
   }
 
-  if (response.status === 204) return undefined as T;
+  const backendError = getBackendError(error.response?.data);
+  return new ApiError(
+    error.response?.status ?? 0,
+    backendError ?? {
+      code: error.response ? "REQUEST_FAILED" : "NETWORK_ERROR",
+      message: error.response
+        ? "Yêu cầu chưa thể hoàn tất. Vui lòng thử lại."
+        : "Không thể kết nối máy chủ. Hãy kiểm tra mạng rồi thử lại.",
+    },
+  );
+}
 
-  const payload: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = payload as { error?: ApiErrorShape } | null;
-    throw new ApiError(
-      response.status,
-      error?.error ?? {
-        code: "REQUEST_FAILED",
-        message: "Yêu cầu chưa thể hoàn tất. Vui lòng thử lại.",
-      },
-    );
-  }
-  return payload as T;
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => Promise.reject(toApiError(error)),
+);
+
+export async function request<T>(
+  path: string,
+  config: AxiosRequestConfig = {},
+): Promise<T> {
+  const response = await apiClient.request<T>({ ...config, url: path });
+  return response.status === 204 ? (undefined as T) : response.data;
 }

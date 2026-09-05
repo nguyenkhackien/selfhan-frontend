@@ -11,6 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    setupFiles: ["./tests/setup/axiosMockAdapter.ts"],
     exclude: [...configDefaults.exclude, "tests/e2e/**"],
     coverage: {
       provider: "v8",

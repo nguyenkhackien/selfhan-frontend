@@ -17,7 +17,7 @@ export const learningApi = {
   review: (vocabularyId: string, rating: ReviewRating) =>
     request<{ vocabularyId: string; nextReviewAt: string; srsStage: number }>(
       "/reviews",
-      { method: "POST", body: JSON.stringify({ vocabularyId, rating }) },
+      { method: "POST", data: { vocabularyId, rating } },
     ),
   listLessonQuizzes: (lessonId: string) =>
     request<QuizSummary[]>(`/lessons/${lessonId}/quizzes`),
@@ -30,12 +30,12 @@ export const learningApi = {
   ) =>
     request<QuizAttemptResult>(`/quizzes/${quizId}/attempts`, {
       method: "POST",
-      body: JSON.stringify({ answers }),
+      data: { answers },
     }),
   updateLessonProgress: (lessonId: string, sectionsSeen: string[]) =>
     request<{ status: string }>(`/lessons/${lessonId}/progress`, {
       method: "POST",
-      body: JSON.stringify({ sectionsSeen }),
+      data: { sectionsSeen },
     }),
   getLessonProgress: (lessonId: string) =>
     request<{ sectionsSeen: string[]; status: string }>(

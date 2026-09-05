@@ -7,17 +7,15 @@ import type {
 
 export const hskApi = {
   listBands: () => request<{ items: HskBand[] }>("/hsk/bands"),
-  listVocabulary: (input: {
-    band?: number;
-    query?: string;
-    cursor?: string;
-  }) => {
-    const params = new URLSearchParams({ limit: "24" });
-    if (input.band !== undefined) params.set("band", String(input.band));
-    if (input.query) params.set("query", input.query);
-    if (input.cursor) params.set("cursor", input.cursor);
-    return request<HskVocabularyPage>("/hsk/vocabulary?" + params.toString());
-  },
+  listVocabulary: (input: { band?: number; query?: string; cursor?: string }) =>
+    request<HskVocabularyPage>("/hsk/vocabulary", {
+      params: {
+        limit: 24,
+        band: input.band,
+        query: input.query || undefined,
+        cursor: input.cursor || undefined,
+      },
+    }),
   getVocabulary: (id: string) =>
     request<HskVocabularyDetail>("/hsk/vocabulary/" + id),
 };

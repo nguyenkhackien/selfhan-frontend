@@ -1,10 +1,10 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "./useAuth";
 
 function Probe() {
-  useAuth();
-  return null;
+  const auth = useAuth();
+  return <p>{auth.restoring ? "restoring" : (auth.user?.email ?? "guest")}</p>;
 }
 
 describe("useAuth", () => {
@@ -41,5 +41,30 @@ describe("useAuth", () => {
     );
     await Promise.resolve();
     expect(true).toBe(true);
+  });
+
+  it("restores an active session from the refresh cookie", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              accessToken: "token",
+              user: {
+                id: "user",
+                email: "a@example.com",
+                role: "learner",
+                createdAt: "now",
+              },
+            }),
+          ),
+        ),
+      ),
+    );
+
+    render(<Probe />);
+
+    expect(await screen.findByText("a@example.com")).not.toBeNull();
   });
 });

@@ -5,12 +5,12 @@ export const authApi = {
   register: (email: string, password: string) =>
     request<AuthResponse>("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      data: { email, password },
     }),
   login: (email: string, password: string) =>
     request<AuthResponse>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      data: { email, password },
     }),
   refresh: () => request<AuthResponse>("/auth/refresh", { method: "POST" }),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
